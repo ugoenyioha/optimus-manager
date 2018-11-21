@@ -55,21 +55,19 @@ def main():
     # Arguments parsing
     parser = argparse.ArgumentParser(description="Daemon program for the Optimus Manager tool.\n"
                                                  "https://github.com/Askannz/optimus-manager")
-    parser.add_argument('--startup', action='store_true', help='Startup mode (configure GPU when daemon starts).')
+    parser.add_argument('--startup', action='store_true', help='Startup mode (configure GPU before the login manager starts).')
     args = parser.parse_args()
-
-    print("Optimus Manager (Daemon) version %s" % envs.VERSION)
 
     # Config
     config = load_config()
 
-    # Cleanup
-    clean_all()
-
     # Startup
     if args.startup:
 
-        print("Starting up")
+        print("Optimus Manager (Daemon startup) version %s" % envs.VERSION)
+
+        # Cleanup
+        clean_all()
 
         if not is_xorg_running():
 
@@ -93,60 +91,64 @@ def main():
 
             print("Xorg server is running, skipping startup")
 
-    # UNIX socket
+    else:
 
-    if os.path.exists(envs.SOCKET_PATH):
-        print("Warning : the UNIX socket file %s already exists ! Either another "
-              "daemon instance is running or the daemon was not exited gracefully "
-              "last time.\nRemoving the file and moving on..." % envs.SOCKET_PATH)
-        os.remove(envs.SOCKET_PATH)
+        print("Optimus Manager (Daemon) version %s" % envs.VERSION)
 
-    server = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
-    server.settimeout(envs.SOCKET_TIMEOUT)
-    server.bind(envs.SOCKET_PATH)
-    os.chmod(envs.SOCKET_PATH, 0o666)
+        # UNIX socket
 
-    # Signal hander
-    handler = SignalHandler(server)
-    signal.signal(signal.SIGTERM, handler.handler)
-    signal.signal(signal.SIGINT, handler.handler)
+        if os.path.exists(envs.SOCKET_PATH):
+            print("Warning : the UNIX socket file %s already exists ! Either another "
+                  "daemon instance is running or the daemon was not exited gracefully "
+                  "last time.\nRemoving the file and moving on..." % envs.SOCKET_PATH)
+            os.remove(envs.SOCKET_PATH)
 
-    print("Awaiting commands")
-    try:
-        while True:
+        server = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
+        server.settimeout(envs.SOCKET_TIMEOUT)
+        server.bind(envs.SOCKET_PATH)
+        os.chmod(envs.SOCKET_PATH, 0o666)
 
-            r, _, _ = select.select([server], [], [])
-            datagram = server.recv(1024)
-            msg = datagram.decode('utf-8')
+        # Signal hander
+        handler = SignalHandler(server)
+        signal.signal(signal.SIGTERM, handler.handler)
+        signal.signal(signal.SIGINT, handler.handler)
 
-            print("Received command : %s" % msg)
+        print("Awaiting commands")
+        try:
+            while True:
 
-            if msg not in ["intel", "nvidia", "startup_nvidia_once",
-                           "startup_nvidia", "startup_intel"]:
-                print("Invalid command !")
+                r, _, _ = select.select([server], [], [])
+                datagram = server.recv(1024)
+                msg = datagram.decode('utf-8')
 
-            else:
+                print("Received command : %s" % msg)
 
-                try:
-                    # Switching
-                    if msg == "intel":
-                        gpu_switch(config, "intel")
-                    elif msg == "nvidia":
-                        gpu_switch(config, "nvidia")
+                if msg not in ["intel", "nvidia", "startup_nvidia_once",
+                               "startup_nvidia", "startup_intel"]:
+                    print("Invalid command !")
 
-                    # Startup modes
-                    if msg == "startup_nvidia_once":
-                        write_startup_mode("nvidia_once")
-                    elif msg == "startup_nvidia":
-                        write_startup_mode("nvidia")
-                    elif msg == "startup_intel":
-                        write_startup_mode("intel")
+                else:
 
-                except SwitchError as e:
+                    try:
+                        # Switching
+                        if msg == "intel":
+                            gpu_switch(config, "intel")
+                        elif msg == "nvidia":
+                            gpu_switch(config, "nvidia")
 
-                    print("Cannot switch GPU : %s" % str(e))
-    finally:
-        clean_all()
+                        # Startup modes
+                        if msg == "startup_nvidia_once":
+                            write_startup_mode("nvidia_once")
+                        elif msg == "startup_nvidia":
+                            write_startup_mode("nvidia")
+                        elif msg == "startup_intel":
+                            write_startup_mode("intel")
+
+                    except SwitchError as e:
+
+                        print("Cannot switch GPU : %s" % str(e))
+        finally:
+            clean_all()
 
 
 if __name__ == '__main__':

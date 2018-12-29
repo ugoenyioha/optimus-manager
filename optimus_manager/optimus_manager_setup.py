@@ -118,6 +118,12 @@ def main():
         # Terminate X11 sessions and closing X servers
         _terminate_sessions()
 
+        # Debugging output (temporary)
+        try:
+            exec_bash("lsof -n | grep \"/dev/dri\" > /var/log/optimus_manager_dri.log")
+        except BashError:
+            pass
+
         # Killing systemd-logind (there is a known bug causing it to keep ownership of the GPU
         # and prevents module unloading)
         try:

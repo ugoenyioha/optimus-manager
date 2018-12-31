@@ -120,7 +120,7 @@ def main():
 
         # Debugging output (temporary)
         try:
-            exec_bash("lsof -n | grep \"/dev/dri\" > /var/log/optimus_manager_dri.log")
+            exec_bash("lsof -n | grep /dev/dri > /var/log/optimus_manager_dri.log")
         except BashError:
             pass
 

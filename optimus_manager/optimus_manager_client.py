@@ -8,7 +8,7 @@ import optimus_manager.checks as checks
 from optimus_manager.config import load_config, ConfigError
 from optimus_manager.var import read_requested_mode, read_startup_mode, VarError
 from optimus_manager.xorg import cleanup_xorg_conf, is_there_a_default_xorg_conf_file, is_there_a_MHWD_file
-from optimus_manager.sessions import logout_all_desktop_sessions, is_there_a_wayland_session, SessionsError
+from optimus_manager.sessions import is_there_a_wayland_session, SessionsError
 
 
 def main():
@@ -102,9 +102,6 @@ def gpu_switch(config, switch_mode):
 
     print("Switching to mode : %s" % switch_mode)
     _send_command(switch_mode)
-
-    if config["optimus"]["auto_logout"] == "yes":
-        logout_all_desktop_sessions()
 
 
 def _get_config():

@@ -8,6 +8,7 @@ import optimus_manager.envs as envs
 from optimus_manager.config import load_config, ConfigError
 from optimus_manager.var import write_startup_mode, write_requested_mode, VarError
 from optimus_manager.xorg import cleanup_xorg_conf
+from optimus_manager.sessions import logout_all_desktop_sessions
 
 
 def main():
@@ -77,19 +78,23 @@ def _wait_for_command(server_socket):
 
 def _process_command(config, msg):
 
-    # GPU switching
-    if msg == "intel" or msg == "nvidia":
-        _write_gpu_mode(config, msg)
-
     # Startup modes
-    elif msg == "startup_nvidia":
+    if msg == "startup_nvidia":
         _write_startup_mode("nvidia")
     elif msg == "startup_intel":
         _write_startup_mode("intel")
     elif msg == "startup_nvidia_once":
         _write_startup_mode("nvidia_once")
+
+    # GPU switching
+    elif msg == "intel" or msg == "nvidia":
+        _write_gpu_mode(config, msg)
+
+        if config["optimus"]["auto_logout"] == "yes":
+            logout_all_desktop_sessions()
+
     else:
-        print("Invalid command !")
+        print("Invalid command : %s" % msg)
 
 
 def _write_gpu_mode(config, mode):

@@ -9,23 +9,12 @@ def logout_all_desktop_sessions():
 
     print("Logging out any open desktop session")
 
-    # KDE Plasma
-    try:
-        exec_bash("qdbus org.kde.ksmserver /KSMServer logout 0 3 3")
-    except BashError:
-        pass
+    sessions_list = _get_sessions_list()
 
-    # GNOME
-    try:
-        exec_bash("gnome-session-quit --logout --force")
-    except BashError:
-        pass
-
-    # XFCE
-    try:
-        exec_bash("xfce4-session-logout --logout")
-    except BashError:
-        pass
+    for session_id in sessions_list:
+        session_type = _get_session_type(session_id)
+        if session_type == "x11" or session_type == "wayland":
+            _terminate_session(session_id)
 
 
 def is_there_a_wayland_session():
@@ -68,3 +57,11 @@ def _get_session_type(session_id):
             return session_type
     else:
         raise SessionsError("Error checking type of session %s : no Type value")
+
+
+def _terminate_session(session_id):
+
+    try:
+        exec_bash("loginctl terminate-session %s" % session_id)
+    except BashError as e:
+        raise SessionsError("Error terminating session %s : error running loginctl : %s" % (session_id, str(e)))

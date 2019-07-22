@@ -106,40 +106,33 @@ def set_DPI(config):
 
 def _generate_nvidia(config, bus_ids, xorg_extra):
 
-    text = "Section \"Files\"\n" \
-           "\tModulePath \"/usr/lib/nvidia\"\n" \
-           "\tModulePath \"/usr/lib32/nvidia\"\n" \
-           "\tModulePath \"/usr/lib32/nvidia/xorg/modules\"\n" \
-           "\tModulePath \"/usr/lib32/xorg/modules\"\n" \
-           "\tModulePath \"/usr/lib64/nvidia/xorg/modules\"\n" \
-           "\tModulePath \"/usr/lib64/nvidia/xorg\"\n" \
-           "\tModulePath \"/usr/lib64/xorg/modules\"\n" \
+    text = "Section \"ServerLayout\"\n" \
+           "\tIdentifier \"layout\"\n" \
+           "\tScreen 0 \"nvidia\"\n" \
+           "\tInactive \"intel\"\n" \
            "EndSection\n\n"
-
-    text += "Section \"Module\"\n" \
-            "\tLoad \"modesetting\"\n" \
-            "EndSection\n\n"
 
     text += "Section \"Device\"\n" \
             "\tIdentifier \"nvidia\"\n" \
             "\tDriver \"nvidia\"\n"
-
     text += "\tBusID \"%s\"\n" % bus_ids["nvidia"]
-    text += "\tOption \"AllowEmptyInitialConfiguration\"\n"
+    text += "EndSection\n\n"
 
-    options = config["nvidia"]["options"].replace(" ", "").split(",")
+    text += "Section \"Screen\"\n" \
+            "\tIdentifier \"nvidia\"\n" \
+            "\tDevice \"nvidia\"\n" \
+            "\tOption \"AllowEmptyInitialConfiguration\"\n" \
+            "EndSection\n\n"
 
-    if "overclocking" in options:
-        text += "\tOption \"Coolbits\" \"28\"\n"
+    text += "Section \"Device\"\n" \
+            "\tIdentifier \"intel\"\n" \
+            "\tDriver \"modesetting\"\n" \
+            "EndSection\n\n"
 
-    if "triple_buffer" in options:
-        text += "\tOption \"TripleBuffer\" \"true\"\n"
-
-    if "nvidia" in xorg_extra.keys():
-        for line in xorg_extra["nvidia"]:
-            text += ("\t" + line + "\n")
-
-    text += "EndSection\n"
+    text += "Section \"Screen\"\n" \
+            "\tIdentifier \"intel\"\n" \
+            "\tDevice \"intel\"\n" \
+            "EndSection\n\n"
 
     return text
 

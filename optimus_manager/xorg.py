@@ -127,6 +127,7 @@ def _generate_nvidia(config, bus_ids, xorg_extra):
     text += "Section \"Device\"\n" \
             "\tIdentifier \"intel\"\n" \
             "\tDriver \"modesetting\"\n" \
+    text += "\tBusID \"%s\"\n" % bus_ids["intel"]
             "EndSection\n\n"
 
     text += "Section \"Screen\"\n" \

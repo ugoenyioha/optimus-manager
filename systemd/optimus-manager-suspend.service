@@ -1,0 +1,13 @@
+[Unit]
+Description=Optimus Manager suspend hook
+Before=sleep.target
+StopWhenUnneeded=yes
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/bin/python3 -u -m optimus_manager.hooks.pre_suspend
+ExecStop=/usr/bin/python3 -u -m optimus_manager.hooks.post_resume
+
+[Install]
+WantedBy=sleep.target 

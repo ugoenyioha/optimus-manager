@@ -36,6 +36,8 @@ def get_available_modules():
 
 def nvidia_power_up(config, available_modules):
 
+    logger = get_logger()
+
     switching_mode = config["optimus"]["switching"]
     if switching_mode == "bbswitch":
         _try_load_bbswitch(available_modules)
@@ -45,8 +47,12 @@ def nvidia_power_up(config, available_modules):
         _try_set_acpi_call_state("ON")
     elif switching_mode == "custom":
         _try_custom_set_power_state("ON")
+    else:
+        logger.info("switching=%s, nothing to do", switching_mode)
 
 def nvidia_power_down(config, available_modules):
+
+    logger = get_logger()
 
     switching_mode = config["optimus"]["switching"]
     if switching_mode == "bbswitch":
@@ -57,6 +63,8 @@ def nvidia_power_down(config, available_modules):
         _try_set_acpi_call_state("OFF")
     elif switching_mode == "custom":
         _try_custom_set_power_state("OFF")
+    else:
+        logger.info("switching=%s, nothing to do", switching_mode)
 
 
 def _nvidia_up(config, hybrid):

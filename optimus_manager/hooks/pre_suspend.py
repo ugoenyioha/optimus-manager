@@ -2,6 +2,7 @@ import sys
 from ..config import load_config
 from .. import var
 from ..log_utils import set_logger_config, get_logger
+from ..kernel import nvidia_power_up, get_available_modules
 
 
 def main():
@@ -25,23 +26,21 @@ def main():
 
         config = load_config()
         switching_option = config["optimus"]["switching"]
-        bbswitch_enabled = switching_option == "bbswitch"
 
         logger.info("Switching option: %s", switching_option)
 
-        if current_mode != "integrated" or not bbswitch_enabled:
+        if current_mode != "integrated":
             logger.info("Nothing to do")
 
         else:
-            logger.info("Turning bbswitch on")
-            with open("/proc/acpi/bbswitch", "w") as f:
-                f.write("ON")
+            logger.info("Turning Nvidia GPU back on")
+            available_modules = get_available_modules()
+            nvidia_power_up(config, available_modules)
 
         state = {
             "type": "pending_post_resume",
             "switch_id": switch_id,
-            "current_mode": current_mode,
-            "bbswitch": bbswitch_enabled
+            "current_mode": current_mode
         }
 
         var.write_state(state)

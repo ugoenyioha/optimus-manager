@@ -1,6 +1,8 @@
 import sys
+from ..config import load_config
 from .. import var
 from ..log_utils import set_logger_config, get_logger
+from ..kernel import nvidia_power_down, get_available_modules
 
 
 def main():
@@ -22,15 +24,16 @@ def main():
 
         logger.info("Previous state was: %s", str(prev_state))
 
-        bbswitch_enabled = prev_state["bbswitch"]
+        config = load_config()
+        switching_option = config["optimus"]["switching"]
 
-        if current_mode != "integrated" or not bbswitch_enabled:
+        if current_mode != "integrated":
             logger.info("Nothing to do")
 
         else:
-            logger.info("Turning bbswitch back off")
-            with open("/proc/acpi/bbswitch", "w") as f:
-                f.write("OFF")
+            logger.info("Turning Nvidia GPU off again")
+            available_modules = get_available_modules()
+            nvidia_power_down(config, available_modules)
 
         state = {
             "type": "done",

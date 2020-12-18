@@ -102,10 +102,12 @@ def get_gpus_bus_ids(notation_fix=True):
         logger.warning("Multiple AMD GPUs found ! Picking the first one.")
 
     bus_ids = {}
-    if len(nvidia_ids_list) > 0:
+    
+    if len(nvidia_ids_list) == 2:
         bus_ids["nvidia"] = nvidia_ids_list[1]
-    else 
+    elif len(nvidia_ids_list) == 1: 
         bus_ids["nvidia"] = nvidia_ids_list[0]
+        
     if len(intel_ids_list) > 0:
         bus_ids["intel"] = intel_ids_list[0]
     if len(amd_ids_list) > 0:
